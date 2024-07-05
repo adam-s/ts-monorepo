@@ -1,0 +1,24 @@
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 2bff6db04fc022cee8a921c391e11ec5dc8ebbf1..6ec445f82e28afc218e59735ed08fe07d63c2391 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -1229,10 +1229,18 @@ const pluginHMR = () => {
+       handleHotUpdate({ modules, server }) {
+         const { root } = server.config;
+         const relFiles = /* @__PURE__ */ new Set();
+-        for (const m of modules)
++        const fsFiles = new Set();
++        for (const m of modules) {
+           if (m.id?.startsWith(root)) {
+             relFiles.add(m.id.slice(server.config.root.length));
++          } else if (m.url?.startsWith('/@fs')) {
++            fsFiles.add(m.url);
+           }
++        }
++
++        // update local vendor build if change detected from monorepo packages
++        fsFiles.forEach((file) => update(file));
++        
+         if (inputManifestFiles.background.length) {
+           const background = prefix$1("/", inputManifestFiles.background[0]);
+           if (relFiles.has(background) || modules.some(isImporter(join(server.config.root, background)))) {
